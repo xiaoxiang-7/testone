@@ -29,7 +29,7 @@ def handle_webhook():
     # 取得集合中的所有文件
     movies = list(query)
     for movie in movies:
-        response_text += "\n片名：" + movie.get("text") + "\n介紹：<a href='" + movie.get("link") + "'>" + movie.get("link") + "</a>"
+        response_text += "\n片名：" + movie.get("text") + "\n介紹：" + movie.get("link")
     
     # 傳回回應文字
     return make_response(jsonify({
