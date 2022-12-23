@@ -17,6 +17,7 @@ def handle_webhook():
 
     # 取得集合
     movies_collection = db.collection("最新電影_分類")
+    movies_collection = db.collection("最新電影_全部")
 
     # 查詢集合中 rate 為動作片的所有文件
     query = movies_collection.where("rate", "==", rate).stream()
