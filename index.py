@@ -8,38 +8,35 @@ from datetime import datetime, timezone, timedelta
 app = Flask(__name__) # 定義一個 Flask 應用程式
 
 @app.route("/webhook3", methods=["POST"])
+
 def handle_webhook():
     # 取得 Dialogflow 中傳遞過來的參數
-    rate = request.get_json()['queryResult']['parameters']['movie']
+    movie = request.get_json()['queryResult']['parameters']['movie']
+    episode = request.get_json()['queryResult']['parameters']['episode']
 
     # 建立 Firestore 的連接
     db = firestore.client()
 
-    if rate == "全部電影":
+    if movie == "全部電影":
         # 建立回應文字
-        response_text = "您選擇的電影分類是：" + rate + "，相關電影："
+        response_text = "您選擇的電影分類是：" + movie + "，相關電影："
         movies_collection = db.collection("最新電影_全部")
         query = movies_collection.stream()
-    elif rate in ["動作片", "喜劇片", "愛情片", "科幻片", "恐怖片", "劇情片", "戰爭片", "紀錄片"]:
+    elif movie in ["動作片", "喜劇片", "愛情片", "科幻片", "恐怖片", "劇情片", "戰爭片", "紀錄片"]:
         # 建立回應文字
-        response_text = "您選擇的電影分類是：" + rate + "，相關電影："
+        response_text = "您選擇的電影分類是：" + movie + "，相關電影："
         movies_collection = db.collection("最新電影_分類")
-        query = movies_collection.where("rate", "==", rate).stream()
-    elif rate == "全部劇集":
+        query = movies_collection.where("rate", "==", movie).stream()
+    elif movie == "全部劇集":
         # 建立回應文字
-        response_text = "您選擇的劇集分類是：" + rate + "，相關劇集："
+        response_text = "您選擇的劇集分類是：" + movie + "，相關劇集："
         series_collection = db.collection("最新劇集_全部")
         query = series_collection.stream()
-    elif rate in ["陸劇", "港劇", "台劇", "日劇", "韓劇", "美劇", "海外劇"]:
+    elif movie in ["陸劇", "港劇", "台劇", "日劇", "韓劇", "美劇", "海外劇"]:
         # 建立回應文字
-        response_text = "您選擇的劇集分類是：" + rate + "，相關劇集："
+        response_text = "您選擇的劇集分類是：" + movie + "，相關劇集："
         series_collection = db.collection("最新劇集_分類")
-        query = series_collection.where("rate", "==", rate).stream()
-    elif rate == "全部動漫":
-        # 建立回應文字
-        response_text = "您選擇的動漫分類是：" + rate + "，相關動漫："
-        anime_collection = db.collection("最新動漫_全部")
-        query = anime_collection.stream()
+        query = series_collection.where("rate", "==", movie).stream()
 
     # 取得集合中的所有文件
     movies = list(query)
