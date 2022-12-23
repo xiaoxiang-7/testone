@@ -35,3 +35,32 @@ def handle_webhook():
     return make_response(jsonify({
         "fulfillmentText": response_text
     }))
+
+@app.route("/webhook3", methods=["POST"])
+def handle_webhook():
+    # 取得 Dialogflow 中傳遞過來的參數
+    rate = request.get_json()['queryResult']['parameters']['episode']
+
+    # 建立 Firestore 的連接
+    db = firestore.client()
+
+    # 建立回應文字
+    response_text = "您選擇的劇集分類是：" + rate + "，相關劇集："
+
+    # 根據使用者輸入的關鍵字，選擇要取得的集合
+    if rate == "全部":
+        movies_collection = db.collection("最新劇集_全部")
+        query = movies_collection.stream()
+    else:
+        movies_collection = db.collection("最新劇集_分類")
+        query = movies_collection.where("rate", "==", rate).stream()
+
+    # 取得集合中的所有文件
+    movies = list(query)
+    for movie in movies:
+        response_text += "\n片名：" + movie.get("text") + "\n介紹：" + movie.get("link")
+    
+    # 傳回回應文字
+    return make_response(jsonify({
+        "fulfillmentText": response_text
+    }))
