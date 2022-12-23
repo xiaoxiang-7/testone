@@ -11,8 +11,7 @@ app = Flask(__name__) # 定義一個 Flask 應用程式
 def handle_webhook():
     # 取得 Dialogflow 中傳遞過來的參數
     episode_rate = request.get_json()['queryResult']['parameters']['episode']
-    movie_rate = request.get_json()['queryResult']['parameters']['movie']
-
+    
     # 建立 Firestore 的連接
     db = firestore.client()
 
@@ -27,7 +26,22 @@ def handle_webhook():
         response_text = "您選擇的劇集分類是：" + episode_rate + "，相關劇集："
         movies_collection = db.collection("最新劇集_分類")
         query = movies_collection.where("rate", "==", episode_rate).stream()
-    elif movie_rate == "全部電影":
+
+    # 取得集合中的所有文件
+    episodes = list(query)
+    for episode in episodes:
+        response_text += "\n片名：" + episode.get("text") + "\n介紹：" + episode.get("link")
+
+    # 傳回回應文字
+    return make_response(jsonify({
+        "fulfillmentText": response_text
+    }))
+
+
+    movie_rate = request.get_json()['queryResult']['parameters']['movie']
+    db = firestore.client()
+
+    if movie_rate == "全部電影":
         # 建立回應文字
         response_text = "您選擇的電影分類是：" + movie_rate + "，相關電影："
         movies_collection = db.collection("最新電影_全部")
@@ -38,10 +52,6 @@ def handle_webhook():
         movies_collection = db.collection("最新電影_分類")
         query = movies_collection.where("rate", "==", movie_rate).stream()
 
-    # 取得集合中的所有文件
-    episodes = list(query)
-    for episode in episodes:
-        response_text += "\n片名：" + episode.get("text") + "\n介紹：" + episode.get("link") 
     movies = list(query)
     for movie in movies:
         response_text += "\n片名：" + movie.get("text") + "\n介紹：" + movie.get("link")
