@@ -19,7 +19,7 @@ def handle_webhook():
     response_text = "您選擇的電影分類是：" + rate + "，相關電影："
 
     # 根據使用者輸入的關鍵字，選擇要取得的集合
-    if rate == "全部":
+    if rate == "全部電影":
         movies_collection = db.collection("最新電影_全部")
         query = movies_collection.stream()
     else:
