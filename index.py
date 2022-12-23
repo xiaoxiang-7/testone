@@ -21,7 +21,7 @@ def handle_webhook():
     # 根據使用者輸入的關鍵字，選擇要取得的集合
     if rate == "全部電影":
         movies_collection = db.collection("最新電影_全部")
-        query = movies_collection.stream()
+        query = movies_collection.where("rate", "==", rate).stream()
     else:
         movies_collection = db.collection("最新電影_分類")
         query = movies_collection.where("rate", "==", rate).stream()
