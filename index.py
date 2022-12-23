@@ -11,6 +11,7 @@ app = Flask(__name__) # 定義一個 Flask 應用程式
 def handle_webhook():
     # 取得 Dialogflow 中傳遞過來的參數
     rate = request.get_json()['queryResult']['parameters']['movie']
+    episode = request.get_json()['queryResult']['parameters']['episode']
 
     # 建立 Firestore 的連接
     db = firestore.client()
@@ -37,16 +38,13 @@ def handle_webhook():
     }))
 
 
-    # 取得 Dialogflow 中傳遞過來的參數
-    rate = request.get_json()['queryResult']['parameters']['episode']
-
     # 根據使用者輸入的關鍵字，選擇要取得的集合
-    if rate == "全部劇集":
+    if episode == "全部劇集":
         movies_collection = db.collection("最新劇集_全部")
         query = movies_collection.stream()
-    elif rate in ["陸劇", "港劇", "台劇", "日劇", "韓劇", "美劇", "海外劇"]:
+    elif episode in ["陸劇", "港劇", "台劇", "日劇", "韓劇", "美劇", "海外劇"]:
         movies_collection = db.collection("最新劇集_分類")
-        query = movies_collection.where("rate", "==", rate).stream()
+        query = movies_collection.where("rate", "==", episode).stream()
 
     # 取得集合中的所有文件
     movies = list(query)
