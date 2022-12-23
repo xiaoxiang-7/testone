@@ -32,6 +32,3 @@ def webhook3():
                 result += "介紹：" + dict["link"] + "\n\n"
         info += result
     return make_response(jsonify({"fulfillmentText": info}))
-
-#if __name__ == "__main__":
-#    app.run()
