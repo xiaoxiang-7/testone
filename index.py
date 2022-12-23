@@ -1,3 +1,12 @@
+import firebase_admin
+from firebase_admin import credentials, firestore
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
+
+from flask import Flask, render_template, request, make_response, jsonify
+from datetime import datetime, timezone, timedelta
+app = Flask(__name__) # 定義一個 Flask 應用程式
+
 @app.route("/webhook", methods=["POST"])
 def handle_webhook():
     # Get the request data
