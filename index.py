@@ -5,7 +5,7 @@ firebase_admin.initialize_app(cred)
 
 from flask import Flask, render_template, request, make_response, jsonify
 from datetime import datetime, timezone, timedelta
-app = Flask(__name__)
+app = Flask(__name__) # 定義一個 Flask 應用程序
 
 @app.route("/webhook3", methods=["POST"])
 def webhook3():
@@ -14,7 +14,7 @@ def webhook3():
     # 從 json 中獲取查詢結果
     action =  req.get("queryResult").get("action")
     
-    if (action == "rateChoice"):
+    if (action == "movie"):
         rate =  req.get("queryResult").get("parameters").get("movie")
         if (rate == "動作片"):
             rate = "動作片"
@@ -32,3 +32,6 @@ def webhook3():
                 result += "介紹：" + dict["link"] + "\n\n"
         info += result
     return make_response(jsonify({"fulfillmentText": info}))
+
+#if __name__ == "__main__":
+#    app.run()
