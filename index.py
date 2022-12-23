@@ -13,7 +13,7 @@ def webhook():
     action =  req.get("queryResult").get("action")
 
     if (action == "movie"):
-        rate =  req.get("queryResult").get("parameters").get("rate")
+        rate =  req.get("queryResult").get("parameters").get("movie")
         info = "您選擇的電影分類是：" + rate + "，相關電影：\n"
         collection_ref = db.collection("最新電影_全部")
         docs = collection_ref.get()
@@ -26,7 +26,7 @@ def webhook():
                 result += "介紹網址：" + dict["link"] + "\n\n\n"
         info += result
     elif (action == "movie"):
-        rate =  req.get("queryResult").get("parameters").get("rate")
+        rate =  req.get("queryResult").get("parameters").get("movie")
         info = "您選擇的電影分類是：" + rate + "，相關電影：\n"
         collection_ref = db.collection("最新電影_分類")
         docs = collection_ref.get()
