@@ -1,62 +1,39 @@
-import firebase_admin
-from firebase_admin import credentials, firestore
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
-
-from flask import Flask, render_template, request, make_response, jsonify
-from datetime import datetime, timezone, timedelta
-app = Flask(__name__) # 定義一個 Flask 應用程式
-
 @app.route("/webhook", methods=["POST"])
 def handle_webhook():
-    # 取得 Dialogflow 中傳遞過來的參數
-    episode_rate = request.get_json()['queryResult']['parameters']['episode']
-    
-    # 建立 Firestore 的連接
+    # Get the request data
+    data = request.get_json()
+    query_result = data['queryResult']
+    media_type = query_result['parameters']['media_type']
+    media_rate = query_result['parameters']['media_rate']
+
+    # Connect to the Firestore database
     db = firestore.client()
 
-    # 根據使用者輸入的關鍵字，選擇要取得的集合
-    if episode_rate == "全部劇集":
-        # 建立回應文字
-        response_text = "您選擇的劇集分類是：" + episode_rate + "，相關劇集："
-        movies_collection = db.collection("最新劇集_全部")
-        query = movies_collection.stream()
-    elif episode_rate in ["陸劇", "港劇", "台劇", "日劇", "韓劇", "美劇", "海外劇"]:
-        # 建立回應文字
-        response_text = "您選擇的劇集分類是：" + episode_rate + "，相關劇集："
-        movies_collection = db.collection("最新劇集_分類")
-        query = movies_collection.where("rate", "==", episode_rate).stream()
+    # Initialize the response text
+    response_text = "您選擇的" + media_type + "分類是：" + media_rate + "，相關" + media_type + "："
 
-    # 取得集合中的所有文件
-    episodes = list(query)
-    for episode in episodes:
-        response_text += "\n片名：" + episode.get("text") + "\n介紹：" + episode.get("link")
+    # Query the appropriate collection based on the media type and rate
+    if media_type == "電影":
+        if media_rate == "全部電影":
+            media_collection = db.collection("最新電影_全部")
+            query = media_collection.stream()
+        elif media_rate in ["動作片", "喜劇片", "愛情片", "科幻片", "恐怖片", "劇情片", "戰爭片", "紀錄片"]:
+            media_collection = db.collection("最新電影_分類")
+            query = media_collection.where("rate", "==", media_rate).stream()
+    elif media_type == "劇集":
+        if media_rate == "全部劇集":
+            media_collection = db.collection("最新劇集_全部")
+            query = media_collection.stream()
+        elif media_rate in ["陸劇", "港劇", "台劇", "日劇", "韓劇", "美劇", "海外劇"]:
+            media_collection = db.collection("最新劇集_分類")
+            query = media_collection.where("rate", "==", media_rate).stream()
 
-    # 傳回回應文字
-    return make_response(jsonify({
-        "fulfillmentText": response_text
-    }))
+    # Loop through the media and append information about each item to the response text
+    media = list(query)
+    for item in media:
+        response_text += "\n片名：" + item.get("text") + "\n介紹：" + item.get("link")
 
-
-    movie_rate = request.get_json()['queryResult']['parameters']['movie']
-    db = firestore.client()
-
-    if movie_rate == "全部電影":
-        # 建立回應文字
-        response_text = "您選擇的電影分類是：" + movie_rate + "，相關電影："
-        movies_collection = db.collection("最新電影_全部")
-        query = movies_collection.stream()
-    elif movie_rate in ["動作片", "喜劇片", "愛情片", "科幻片", "恐怖片", "劇情片", "戰爭片", "紀錄片"]:
-        # 建立回應文字
-        response_text = "您選擇的電影分類是：" + movie_rate + "，相關電影："
-        movies_collection = db.collection("最新電影_分類")
-        query = movies_collection.where("rate", "==", movie_rate).stream()
-
-    movies = list(query)
-    for movie in movies:
-        response_text += "\n片名：" + movie.get("text") + "\n介紹：" + movie.get("link")
-
-    # 傳回回應文字
+    # Send the response
     return make_response(jsonify({
         "fulfillmentText": response_text
     }))
