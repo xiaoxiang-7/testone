@@ -12,6 +12,7 @@ def handle_webhook():
     # Extract the 'episode' or 'movie' parameter from the request body
     episode_rate = request.get_json().get('queryResult', {}).get('parameters', {}).get('episode')
     movie_rate = request.get_json().get('queryResult', {}).get('parameters', {}).get('movie')
+    cartoon_rate = request.get_json().get('queryResult', {}).get('parameters', {}).get('movie')
 
     # Connect to the Cloud Firestore database
     db = firestore.client()
@@ -38,6 +39,14 @@ def handle_webhook():
             response_text = "您選擇的電影分類是：" + movie_rate + "，相關電影："
             movies_collection = db.collection("最新電影_分類")
             query = movies_collection.where("rate", "==", movie_rate).stream()
+        elif cartoon_rate == "全部動漫":
+            response_text = "您選擇的動漫分類是：" + cartoon_rate + "，相關動漫："
+            movies_collection = db.collection("最新動漫_全部")
+            query = movies_collection.stream()
+        elif cartoon_rate in ["日漫", "冒險", "熱血", "搞笑", "奇幻", "科幻"]:
+            response_text = "您選擇的動漫分類是：" + cartoon_rate + "，相關動漫："
+            movies_collection = db.collection("最新動漫_分類")
+            query = movies_collection.where("rate", "==", cartoon_rate).stream()
         # If the 'episode' and 'movie' parameters are not set or have invalid values, set the response text to an error message
         else:
             response_text = "對不起，您輸入的不正確。"
