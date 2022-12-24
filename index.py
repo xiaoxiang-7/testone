@@ -59,5 +59,5 @@ def handle_webhook():
 
 # 傳回回應文字
 return make_response(jsonify({
-    "fulfillmentText": response_text
+"fulfillmentText": response_text
 }))
