@@ -14,15 +14,19 @@ def handle_webhook():
 
   query_result = req.get('queryResult')
   if query_result.get('action') == 'movie':
+    # Get the user's input keyword
+    keyword = query_result.get('queryText')
     movie_rate = request.get_json()['queryResult']['parameters']['movie']
     db = firestore.client()
-    response_text = "您選擇的電影分類是：" + movie_rate + "，相關電影："
+    response_text = "您輸入的關鍵字是：" + keyword + "\n您選擇的電影分類是：" + movie_rate + "，相關電影："
     movies_collection = db.collection("最新電影_全部")
     query = movies_collection.stream()
   elif query_result.get('action') == 'episode':
+    # Get the user's input keyword
+    keyword = query_result.get('queryText')
     episode_rate = request.get_json()['queryResult']['parameters']['episode']
     db = firestore.client()
-    response_text = "您選擇的劇集分類是：" + episode_rate + "，相關劇集："
+    response_text = "您輸入的關鍵字是：" + keyword + "\n您選擇的劇集分類是：" + episode_rate + "，相關劇集："
     movies_collection = db.collection("最新劇集_全部")
     query = movies_collection.stream()
   
