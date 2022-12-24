@@ -7,34 +7,35 @@ from flask import Flask, render_template, request, make_response, jsonify
 from datetime import datetime, timezone, timedelta
 app = Flask(__name__)
 
-@app.route("/webhook", methods=["POST"])
+@app.route("/webhook3", methods=["POST"])
 def handle_webhook():
-    # Extract the movie or episode type from the request payload
-    intent = request.get_json()['queryResult']['intent']['displayName']
-
-    # Initialize the Firestore client and retrieve a reference to the relevant collection
+    episode_rate = request.get_json()['queryResult']['parameters']['episode']
     db = firestore.client()
-    if intent == "Movie":
-        collection_name = "最新電影_全部"
-        type_name = "電影"
-    elif intent == "Episode":
-        collection_name = "最新劇集_全部"
-        type_name = "劇集"
+
+    if episode_rate == "全部劇集":
+        response_text = "您選擇的劇集分類是：" + episode_rate + "，相關劇集："
+        movies_collection = db.collection("最新劇集_全部")
+        query = movies_collection.stream()
+    elif episode_rate in ["陸劇", "港劇", "台劇", "日劇", "韓劇", "美劇", "海外劇"]:
+        response_text = "您選擇的劇集分類是：" + episode_rate + "，相關劇集："
+        movies_collection = db.collection("最新劇集_分類")
+        query = movies_collection.where("rate", "==", episode_rate).stream()
     else:
-        return make_response(jsonify({
-            "fulfillmentText": "Invalid movie or episode type"
-        }))
+        movie_rate = request.get_json()['queryResult']['parameters']['movie']
+        if movie_rate == "全部電影":
+            response_text = "您選擇的電影分類是：" + movie_rate + "，相關電影："
+            movies_collection = db.collection("最新電影_全部")
+            query = movies_collection.stream()
+        elif movie_rate in ["動作片", "喜劇片", "愛情片", "科幻片", "恐怖片", "劇情片", "戰爭片", "紀錄片"]:
+            response_text = "您選擇的電影分類是：" + movie_rate + "，相關電影："
+            movies_collection = db.collection("最新電影_分類")
+            query = movies_collection.where("rate", "==", movie_rate).stream()
 
-    movies_collection = db.collection(collection_name)
-    query = movies_collection.stream()
-
-    # Construct the response string containing the names and links of the movies or episodes
-    response_text = "您選擇的{}分類是：{}，相關{}：".format(type_name, type_name, type_name)
+    # 取得集合中的所有文件
     movies = list(query)
     for movie in movies:
-        response_text += "\n片名：" + movie.get("text") + "\n介紹：" + movie.get("link")
-
-    # Return the response as the fulfillment text in a JSON object
+        response_text += "\n片名：" + movie.get("text") + "\n介紹：" + movie.get("link")  
+    # 傳回回應文字
     return make_response(jsonify({
         "fulfillmentText": response_text
     }))
