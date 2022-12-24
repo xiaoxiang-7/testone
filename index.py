@@ -7,34 +7,34 @@ from flask import Flask, render_template, request, make_response, jsonify
 from datetime import datetime, timezone, timedelta
 app = Flask(__name__)
 
-@app.route('/webhook3', methods=['POST'])
+@app.route("/webhook", methods=["POST"])
 def handle_webhook():
-  req = request.get_json(silent=True, force=True)
-  fulfillmentText = ''
+    # Extract the movie or episode type from the request payload
+    intent = request.get_json()['queryResult']['intent']['displayName']
 
-  query_result = req.get('queryResult')
-  if query_result.get('action') == 'movie':
-    # Get the user's input keyword
-    keyword = query_result.get('queryText')
-    movie_rate = request.get_json()['queryResult']['parameters']['movie']
+    # Initialize the Firestore client and retrieve a reference to the relevant collection
     db = firestore.client()
-    response_text = "您輸入的關鍵字是：" + keyword + "\n您選擇的電影分類是：" + movie_rate + "，相關電影："
-    movies_collection = db.collection("最新電影_全部")
+    if intent == "Movie":
+        collection_name = "最新電影_全部"
+        type_name = "電影"
+    elif intent == "Episode":
+        collection_name = "最新劇集_全部"
+        type_name = "劇集"
+    else:
+        return make_response(jsonify({
+            "fulfillmentText": "Invalid movie or episode type"
+        }))
+
+    movies_collection = db.collection(collection_name)
     query = movies_collection.stream()
-  elif query_result.get('action') == 'episode':
-    # Get the user's input keyword
-    keyword = query_result.get('queryText')
-    episode_rate = request.get_json()['queryResult']['parameters']['episode']
-    db = firestore.client()
-    response_text = "您輸入的關鍵字是：" + keyword + "\n您選擇的劇集分類是：" + episode_rate + "，相關劇集："
-    movies_collection = db.collection("最新劇集_全部")
-    query = movies_collection.stream()
-  
-  # 取得集合中的所有文件
+
+    # Construct the response string containing the names and links of the movies or episodes
+    response_text = "您選擇的{}分類是：{}，相關{}：".format(type_name, type_name, type_name)
     movies = list(query)
     for movie in movies:
-        response_text += "\n片名：" + episode.get("text") + "\n介紹：" + episode.get("link")  
-    # 傳回回應文字
+        response_text += "\n片名：" + movie.get("text") + "\n介紹：" + movie.get("link")
+
+    # Return the response as the fulfillment text in a JSON object
     return make_response(jsonify({
         "fulfillmentText": response_text
     }))
