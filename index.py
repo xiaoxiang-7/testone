@@ -9,18 +9,18 @@ app = Flask(__name__)
 
 @app.route("/webhook3", methods=["POST"])
 def handle_webhook():
-    # Extract the 'episode' or 'movie' parameter from the request body
+    # 從請求正文中提取“episode”或“movie”或“cartoon”參數
     episode_rate = request.get_json().get('queryResult', {}).get('parameters', {}).get('episode')
     movie_rate = request.get_json().get('queryResult', {}).get('parameters', {}).get('movie')
     cartoon_rate = request.get_json().get('queryResult', {}).get('parameters', {}).get('cartoon')
 
-    # Connect to the Cloud Firestore database
+    # 連接到 Firestore 數據庫
     db = firestore.client()
 
-    # Initialize the response text
+    # 初始化響應文本
     response_text = ""
 
-    # Check the value of the 'episode' parameter
+    # 檢查“episode”參數的值
     if episode_rate == "全部劇集":
         response_text = "您選擇的劇集分類是：" + episode_rate + "，相關劇集："
         movies_collection = db.collection("最新劇集_全部")
@@ -30,7 +30,7 @@ def handle_webhook():
         movies_collection = db.collection("最新劇集_分類")
         query = movies_collection.where("rate", "==", episode_rate).stream()
     else:
-        # Check the value of the 'movie' parameter
+        # 檢查“movie”參數的值
         if movie_rate == "全部電影":
             response_text = "您選擇的電影分類是：" + movie_rate + "，相關電影："
             movies_collection = db.collection("最新電影_全部")
@@ -47,7 +47,7 @@ def handle_webhook():
             response_text = "您選擇的動漫分類是：" + cartoon_rate + "，相關動漫："
             movies_collection = db.collection("最新動漫_分類")
             query = movies_collection.where("rate", "==", cartoon_rate).stream()
-        # If the 'episode' and 'movie' parameters are not set or have invalid values, set the response text to an error message
+        # 如果 'episode' 和 'movie' 和 'cartoon' 參數未設置或具有無效值，則將響應文本設置為錯誤消息
         else:
             response_text = "對不起，您輸入的不正確。"
 
