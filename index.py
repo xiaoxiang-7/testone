@@ -12,7 +12,7 @@ def handle_webhook():
     # Extract the 'episode' or 'movie' parameter from the request body
     episode_rate = request.get_json().get('queryResult', {}).get('parameters', {}).get('episode')
     movie_rate = request.get_json().get('queryResult', {}).get('parameters', {}).get('movie')
-    cartoon_rate = request.get_json().get('queryResult', {}).get('parameters', {}).get('movie')
+    cartoon_rate = request.get_json().get('queryResult', {}).get('parameters', {}).get('cartoon')
 
     # Connect to the Cloud Firestore database
     db = firestore.client()
